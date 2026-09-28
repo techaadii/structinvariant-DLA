@@ -1,0 +1,46 @@
+dataset:
+  name: ai4bharat/indicdlp
+
+  train_split: train
+  val_split: validation
+  test_split: test
+
+  bbox_format: xywh
+
+  max_train_samples: null
+  max_val_samples: null
+  max_test_samples: null
+
+  cache_dir: null
+
+
+dataloader:
+  batch_size: 2
+  num_workers: 4
+  shuffle_train: true
+  pin_memory: true
+  drop_last: false
+
+
+validation:
+  num_samples: 100
+  visualization_indices:
+    - 0
+    - 100
+    - 1000
+    - 5000
+
+
+smoke_test:
+  batch_size: 2
+  num_workers: 0
+  device: cuda
+
+
+reproducibility:
+  seed: 42
+
+
+outputs:
+  root: outputs/v0
+  category_mapping: outputs/v0/category_mapping.json
