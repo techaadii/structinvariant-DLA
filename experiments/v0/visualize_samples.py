@@ -5,7 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-from datasets.indicdlp import IndicDLP
+from dataset.indicdlp import IndicDLP
 
 
 def main():

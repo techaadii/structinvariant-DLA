@@ -1,0 +1,91 @@
+experiment:
+  name: v1_baseline
+  description: "IndicDLP Faster R-CNN baseline"
+  seed: 42
+
+dataset:
+  name: ai4bharat/indicdlp
+
+  train_split: train
+  val_split: validation
+  test_split: test
+
+  bbox_format: xywh
+
+  # Development benchmark.
+  # Set these to null for the actual full experiment.
+  max_train_samples: 24000
+  max_val_samples: 100
+  max_test_samples: 100
+
+  cache_dir: null
+
+model:
+  num_foreground_classes: 42
+  pretrained_backbone: true
+
+  min_size: 320
+  max_size: 512
+
+  rpn_pre_nms_top_n_train: 1000
+  rpn_post_nms_top_n_train: 1000
+
+  rpn_pre_nms_top_n_test: 500
+  rpn_post_nms_top_n_test: 500
+
+  box_detections_per_img: 300
+
+training:
+  epochs: 10
+
+  # A4000 = 16 GB VRAM.
+  batch_size: 16
+  num_workers: 4
+
+  optimizer: sgd
+
+  learning_rate: 0.005
+  momentum: 0.9
+  weight_decay: 0.0005
+
+  scheduler: step
+  step_size: 7
+  gamma: 0.1
+
+  amp: true
+  grad_clip: 5.0
+
+  print_freq: 10
+  pin_memory: true
+  drop_last: false
+
+evaluation:
+  batch_size: 2
+  num_workers: 4
+
+checkpoint:
+  directory: checkpoints/v1
+  save_last: true
+  save_best: true
+
+outputs:
+  directory: outputs/v1
+  history: outputs/v1/history.json
+  metrics: outputs/v1/metrics.json
+  config: outputs/v1/config_resolved.yaml
+  category_mapping: outputs/v1/category_mapping.json
+
+wandb:
+  enabled: true
+  project: structinvariant-dla
+  entity: null
+
+
+  tags:
+    - v1
+    - baseline
+    - indicdlp
+    - fasterrcnn
+
+device:
+  type: cuda

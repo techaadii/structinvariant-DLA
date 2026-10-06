@@ -454,7 +454,7 @@ class IndicDLP:
         )
 
         image_tensor = (
-            torch.from_numpy(image_array)
+            torch.from_numpy(image_array.copy())
             .permute(2, 0, 1)
             .float()
             / 255.0

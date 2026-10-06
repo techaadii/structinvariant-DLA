@@ -7,7 +7,7 @@ import torch
 import yaml
 from torch.utils.data import DataLoader
 
-from datasets.indicdlp import IndicDLP, collate_fn
+from dataset.indicdlp import IndicDLP, collate_fn
 from utils.seed import set_seed
 
 

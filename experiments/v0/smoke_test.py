@@ -10,7 +10,7 @@ from torchvision.models.detection import (
 )
 from torchvision.models import ResNet50_Weights
 
-from datasets.indicdlp import IndicDLP, collate_fn
+from dataset.indicdlp import IndicDLP, collate_fn
 from utils.seed import set_seed
 
 
