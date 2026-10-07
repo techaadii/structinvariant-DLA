@@ -17,15 +17,19 @@ def evaluate_map(
     """
     Evaluate an object detection model using COCO-style bounding-box mAP.
 
-    Returns:
+    Metrics:
         map       : mAP averaged over IoU 0.50:0.95
         map_50    : mAP at IoU 0.50
         map_75    : mAP at IoU 0.75
         mar_1     : mean average recall with max 1 detection/image
         mar_10    : mean average recall with max 10 detections/image
         mar_100   : mean average recall with max 100 detections/image
-        map_per_class : AP for each class
-        classes      : class IDs corresponding to map_per_class
+
+    Also returns:
+        map_per_class
+        classes
+        number of GT boxes
+        number of predictions
     """
 
     model.eval()
@@ -38,60 +42,99 @@ def evaluate_map(
 
     total_batches = len(dataloader)
 
+    total_gt = 0
+    total_predictions = 0
+
     progress = tqdm(
         dataloader,
         desc="Validation mAP",
         leave=False,
     )
 
-    for batch_idx, (images, targets) in enumerate(progress, start=1):
-
-        # Move images to GPU.
+    for batch_idx, (images, targets) in enumerate(
+        progress,
+        start=1,
+    ):
         images = [
-            image.to(device, non_blocking=True)
+            image.to(
+                device,
+                non_blocking=True,
+            )
             for image in images
         ]
 
-        # Run inference.
         predictions = model(images)
 
         preds = []
         target_list = []
 
-        for prediction, target in zip(predictions, targets):
+        for prediction, target in zip(
+            predictions,
+            targets,
+        ):
+            pred_boxes = (
+                prediction["boxes"]
+                .detach()
+                .cpu()
+            )
 
-            # TorchMetrics expects:
-            # boxes  -> [N, 4]
-            # scores -> [N]
-            # labels -> [N]
+            pred_scores = (
+                prediction["scores"]
+                .detach()
+                .cpu()
+            )
+
+            pred_labels = (
+                prediction["labels"]
+                .detach()
+                .cpu()
+            )
+
+            target_boxes = (
+                target["boxes"]
+                .detach()
+                .cpu()
+            )
+
+            target_labels = (
+                target["labels"]
+                .detach()
+                .cpu()
+            )
+
             preds.append(
                 {
-                    "boxes": prediction["boxes"].detach().cpu(),
-                    "scores": prediction["scores"].detach().cpu(),
-                    "labels": prediction["labels"].detach().cpu(),
+                    "boxes": pred_boxes,
+                    "scores": pred_scores,
+                    "labels": pred_labels,
                 }
             )
 
             target_list.append(
                 {
-                    "boxes": target["boxes"].detach().cpu(),
-                    "labels": target["labels"].detach().cpu(),
+                    "boxes": target_boxes,
+                    "labels": target_labels,
                 }
             )
 
-        # Add this batch to the metric.
-        metric.update(preds, target_list)
+            total_gt += len(target_boxes)
+            total_predictions += len(pred_boxes)
 
-        if batch_idx % print_freq == 0 or batch_idx == total_batches:
+        metric.update(
+            preds,
+            target_list,
+        )
+
+        if (
+            batch_idx % print_freq == 0
+            or batch_idx == total_batches
+        ):
             progress.set_postfix(
                 batch=f"{batch_idx}/{total_batches}"
             )
 
-    # Calculate final metrics.
     results = metric.compute()
 
-    # Convert scalar tensors to Python floats while keeping
-    # per-class tensors available.
     output: dict[str, Any] = {}
 
     for key, value in results.items():
@@ -99,11 +142,18 @@ def evaluate_map(
         if isinstance(value, torch.Tensor):
 
             if value.numel() == 1:
-                output[key] = float(value.item())
+                output[key] = float(
+                    value.item()
+                )
             else:
-                output[key] = value.detach().cpu()
+                output[key] = (
+                    value.detach().cpu()
+                )
 
         else:
             output[key] = value
+
+    output["num_ground_truth_boxes"] = total_gt
+    output["num_predictions"] = total_predictions
 
     return output
