@@ -1,0 +1,79 @@
+experiment:
+  name: v3_relational_structural
+  description: "IndicDLP Faster R-CNN with relational structural feature adapter"
+  seed: 42
+
+dataset:
+  name: ai4bharat/indicdlp
+  train_split: train
+  val_split: validation
+  test_split: test
+  bbox_format: xywh
+  max_train_samples: 24000
+  max_val_samples: 100
+  max_test_samples: 100
+  cache_dir: null
+
+model:
+  num_foreground_classes: 42
+  pretrained_backbone: true
+  min_size: 320
+  max_size: 512
+
+  rpn_pre_nms_top_n_train: 1000
+  rpn_post_nms_top_n_train: 1000
+  rpn_pre_nms_top_n_test: 500
+  rpn_post_nms_top_n_test: 500
+
+  box_detections_per_img: 300
+
+training:
+  epochs: 10
+  batch_size: 16
+  num_workers: 4
+
+  optimizer: sgd
+  learning_rate: 0.005
+  momentum: 0.9
+  weight_decay: 0.0005
+
+  scheduler: step
+  step_size: 7
+  gamma: 0.1
+
+  amp: true
+  grad_clip: 5.0
+  print_freq: 10
+
+  pin_memory: true
+  drop_last: false
+
+evaluation:
+  batch_size: 2
+  num_workers: 4
+
+checkpoint:
+  directory: checkpoints/v3
+  save_last: true
+  save_best: true
+
+outputs:
+  directory: outputs/v3
+  history: outputs/v3/history.json
+  metrics: outputs/v3/metrics.json
+  config: outputs/v3/config_resolved.yaml
+  category_mapping: outputs/v3/category_mapping.json
+
+wandb:
+  enabled: true
+  project: structinvariant-dla
+  entity: null
+  tags:
+    - v3
+    - relational
+    - structural
+    - indicdlp
+    - fasterrcnn
+
+device:
+  type: cuda
