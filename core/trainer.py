@@ -283,5 +283,7 @@ class Trainer:
             print(
                 f"Val loss:   {val_loss:.6f}"
             )
+            print("time for GPU to cool down")
+            time.sleep(120)
 
         self.gpu_monitor.close()
